@@ -1,5 +1,6 @@
 package com.example.LMS.entity;
 
+import com.example.LMS.constant.AccountProvider;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -27,10 +28,17 @@ public class User implements UserDetails {
     String Id;
 
     String name;
+
+    @Column(unique = true)
     String email;
+
     String password;
-    String provider;
+
+    @Enumerated(EnumType.STRING)
+    AccountProvider provider;
+
     String providerId;
+
     String avatar;
 
     @JsonIgnore

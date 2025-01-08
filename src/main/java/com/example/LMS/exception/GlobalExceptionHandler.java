@@ -21,14 +21,17 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<ErrorResponse> handleBadRequestException(Exception e, WebRequest request) {
         String message = e.getMessage();
-        ErrorResponse errorResponse = buildErrorResponse(HttpStatus.BAD_REQUEST, request, message);
+        ErrorResponse errorResponse;
         if (e instanceof MethodArgumentNotValidException) {
             message = Objects.requireNonNull(((MethodArgumentNotValidException) e).getBindingResult().getFieldError()).getDefaultMessage();
-            errorResponse = buildErrorResponse(HttpStatus.BAD_REQUEST, request, message);
+            errorResponse = buildErrorResponse(HttpStatus.BAD_REQUEST, request, "Invalid Payload", message);
         } else if (e instanceof ConstraintViolationException) {
-            errorResponse = buildErrorResponse(HttpStatus.BAD_REQUEST, request, message);
+            message = message.substring(message.indexOf(" ") + 1);
+            errorResponse = buildErrorResponse(HttpStatus.BAD_REQUEST, request, "Invalid Parameter", message);
         } else if (e instanceof MissingServletRequestParameterException) {
-            errorResponse = buildErrorResponse(HttpStatus.BAD_REQUEST, request, message);
+            errorResponse = buildErrorResponse(HttpStatus.BAD_REQUEST, request, "Invalid Parameter", message);
+        } else {
+            errorResponse = buildErrorResponse(HttpStatus.BAD_REQUEST, request, "Invalid Data", message);
         }
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
@@ -50,16 +53,20 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception e, WebRequest request) {
-        ErrorResponse errorResponse = buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, request, "An unexpected error occurred");
+        ErrorResponse errorResponse = buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, request, HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), "An unexpected error occurred");
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     private ErrorResponse buildErrorResponse(HttpStatus status, WebRequest request, String message) {
+        return buildErrorResponse(status, request, status.getReasonPhrase(), message);
+    }
+
+    private ErrorResponse buildErrorResponse(HttpStatus status, WebRequest request, String error, String message) {
         ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setTimestamp(new Date());
         errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
         errorResponse.setStatus(status.value());
-        errorResponse.setError(status.getReasonPhrase());
+        errorResponse.setError(error);
         errorResponse.setMessage(message);
         return errorResponse;
     }

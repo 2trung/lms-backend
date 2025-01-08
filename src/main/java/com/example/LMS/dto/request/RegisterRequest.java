@@ -1,20 +1,24 @@
 package com.example.LMS.dto.request;
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Getter
+@Builder
 public class RegisterRequest {
+    @NotBlank(message = "Email is required")
     @Email(message = "Email is not valid")
     String email;
 
-    @NotNull(message = "Password is required")
+    @NotBlank(message = "Password is required")
     String password;
 
-    @NotNull(message = "Name is required")
+    @NotBlank(message = "Name is required")
     String name;
 }
