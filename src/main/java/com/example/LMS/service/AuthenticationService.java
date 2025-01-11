@@ -28,6 +28,8 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -112,7 +114,6 @@ public class AuthenticationService implements IAuthenticationService {
             String accessToken = jwtService.generateToken(user);
             return LoginResponse.builder().user(userMapper.toUserResponse(user)).accessToken(accessToken).build();
         } catch (Exception e) {
-            log.info(e.getMessage());
             throw new AuthenticationFailedException((e.getMessage() != null) ? e.getMessage() : "Bad credentials");
         }
     }
