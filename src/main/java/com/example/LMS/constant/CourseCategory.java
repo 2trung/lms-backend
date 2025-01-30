@@ -12,5 +12,6 @@ public enum CourseCategory {
     DEVOPS,
     CYBER_SECURITY,
     GAME_DEVELOPMENT,
-    SOFTWARE_ENGINE
+    SOFTWARE_ENGINEERING,
+    IOT
 }

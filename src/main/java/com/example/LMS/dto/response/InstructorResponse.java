@@ -6,17 +6,12 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
-import java.util.Set;
-
 @Getter
 @Setter
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserResponse {
-    String id;
+public class InstructorResponse {
     String name;
     String email;
     String avatar;
-    String provider;
-    Set<String> roles;
 }

@@ -1,67 +1,39 @@
-package com.example.LMS.entity;
+package com.example.LMS.dto.response;
 
 import com.example.LMS.constant.CourseCategory;
 import com.example.LMS.constant.CourseLanguage;
 import com.example.LMS.constant.CourseLevel;
-import jakarta.persistence.*;
-import lombok.*;
+import com.example.LMS.entity.Lecture;
+import com.example.LMS.entity.User;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Builder
 @Getter
 @Setter
-@Entity
-@NoArgsConstructor
-@AllArgsConstructor
+@Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Course {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+public class InstructorCourseResponse {
     String id;
-    @ManyToOne
-    User instructor;
-
+    InstructorResponse instructor;
     String title;
-
     String subtitle;
-
     String description;
-
     String image;
-
-    @Enumerated(EnumType.STRING)
     CourseLevel level;
-
-    @Enumerated(EnumType.STRING)
     CourseCategory category;
-
-    @Enumerated(EnumType.STRING)
     CourseLanguage language;
-
     String welcomeMessage;
-
     Float price;
-
     String objectives;
-
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "course")
     List<Lecture> curriculum;
-
-    @ManyToMany
     List<User> students;
-
     Boolean isPublished;
-
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
     LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(nullable = false)
     LocalDateTime updatedAt;
 }

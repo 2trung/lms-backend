@@ -29,7 +29,6 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -128,7 +127,7 @@ public class AuthenticationService implements IAuthenticationService {
             Optional<User> userOptional = userRepository.findByEmail(request.getEmail());
             if (userOptional.isPresent())
                 throw new AuthenticationFailedException("Email already registered");
-            Role role = roleRepository.findByName(PredefinedRole.USER).orElseThrow(() -> new Exception("Role not found"));
+            Role role = roleRepository.findByName(String.valueOf(PredefinedRole.USER)).orElseThrow(() -> new Exception("Role not found"));
             String hashedPassword = passwordEncoder.encode(request.getPassword());
             User user = User.builder()
                     .email(request.getEmail())

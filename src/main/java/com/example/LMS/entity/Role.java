@@ -16,8 +16,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Role {
     @Id
-    @Enumerated(EnumType.STRING)
-    PredefinedRole name;
+    String name;
 
     String description;
 }

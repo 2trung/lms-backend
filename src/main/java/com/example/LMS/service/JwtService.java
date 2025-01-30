@@ -27,7 +27,7 @@ public class JwtService {
         return generateToken(new HashMap<>(), user);
     }
     private String generateToken(Map<String, Object> claims, User user) {
-        List<PredefinedRole> roleNames = getRoleNames(user.getRoles());
+        List<String> roleNames = getRoleNames(user.getRoles());
         String id = user.getId();
         return Jwts.builder()
                 .claims(claims)
@@ -66,7 +66,7 @@ public class JwtService {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    public List<PredefinedRole> getRoleNames(Set<Role> roles) {
+    public List<String> getRoleNames(Set<Role> roles) {
         return roles.stream()
                 .map(Role::getName)
                 .collect(Collectors.toList());

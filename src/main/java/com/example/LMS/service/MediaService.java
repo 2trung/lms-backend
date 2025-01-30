@@ -19,7 +19,15 @@ public class MediaService implements IMediaService {
 
     public Map uploadMedia(MultipartFile file) throws IOException {
         try {
-            return cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+            String contentType = file.getContentType();
+            Map params = ObjectUtils.asMap(
+                    "folder", ""
+            );
+            if (contentType == null || contentType.startsWith("video/"))
+                params.put("resource_type", "video");
+            else
+                params.put("resource_type", "image");
+            return cloudinary.uploader().upload(file.getBytes(), params);
         } catch (IOException e) {
             throw new IOException("Failed to upload media");
         }

@@ -8,18 +8,16 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-import org.springframework.format.annotation.NumberFormat;
 
 import java.util.List;
 
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CreateCourseRequest {
+public class EditCourseRequest {
     @NotBlank(message = "Title is required")
     String title;
     @NotBlank(message = "Subtitle is required")
@@ -41,6 +39,7 @@ public class CreateCourseRequest {
     String welcomeMessage;
     @NotBlank(message = "Image is required")
     String image;
+
     @NotNull(message = "Curriculum is required")
     @Size(min = 1, message = "At least one lecture is required")
     List<LectureRequest> curriculum;
@@ -48,6 +47,7 @@ public class CreateCourseRequest {
     @Getter
     @Setter
     public static class LectureRequest {
+        String id;
         @NotBlank(message = "Curriculum title is required")
         String title;
         @NotBlank(message = "Curriculum public ID is required")

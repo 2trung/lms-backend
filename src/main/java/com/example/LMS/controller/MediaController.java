@@ -2,6 +2,7 @@ package com.example.LMS.controller;
 
 import com.example.LMS.dto.SuccessResponse;
 import com.example.LMS.service.MediaService;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
@@ -22,8 +23,8 @@ public class MediaController {
         return new SuccessResponse<>(HttpStatus.OK.value(), "Media uploaded successfully", mediaService.uploadMedia(file));
     }
 
-    @DeleteMapping("/delete")
-    public SuccessResponse<?> deleteMedia(String publicId) throws Exception {
+    @DeleteMapping("/delete/{publicId}")
+    public SuccessResponse<?> deleteMedia(@NotBlank @PathVariable String publicId) throws Exception {
         mediaService.deleteMedia(publicId);
         return new SuccessResponse<>(HttpStatus.OK.value(), "Deleted successful");
     }

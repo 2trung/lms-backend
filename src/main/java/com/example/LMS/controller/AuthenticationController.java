@@ -30,7 +30,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/social-login")
-    public SuccessResponse<LoginResponse> socialAuthentication(@Valid @RequestBody SocialLoginRequest request) {
+    public SuccessResponse<LoginResponse> socialAuthentication(@Validated @RequestBody SocialLoginRequest request) {
         var response = authenticationService.socialAuthentication(request.getCode(), request.getProvider());
         return new SuccessResponse<>(HttpStatus.OK.value(), "Login successful", response);
     }
