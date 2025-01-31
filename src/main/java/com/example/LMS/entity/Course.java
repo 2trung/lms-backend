@@ -30,6 +30,7 @@ public class Course {
 
     String subtitle;
 
+    @Column(columnDefinition = "TEXT")
     String description;
 
     String image;
@@ -47,6 +48,7 @@ public class Course {
 
     Float price;
 
+    @Column(columnDefinition = "TEXT")
     String objectives;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "course")

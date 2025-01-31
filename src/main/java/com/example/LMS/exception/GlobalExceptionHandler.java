@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.io.IOException;
 import java.util.Date;
@@ -20,7 +21,7 @@ import java.util.Objects;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler({ConstraintViolationException.class,
-            MissingServletRequestParameterException.class, MethodArgumentNotValidException.class})
+            MissingServletRequestParameterException.class, MethodArgumentNotValidException.class, MethodArgumentTypeMismatchException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<ErrorResponse> handleBadRequestException(Exception e, WebRequest request) {
         String message = e.getMessage();
@@ -32,6 +33,8 @@ public class GlobalExceptionHandler {
             message = message.substring(message.indexOf(" ") + 1);
             errorResponse = buildErrorResponse(HttpStatus.BAD_REQUEST, request, "Invalid Parameter", message);
         } else if (e instanceof MissingServletRequestParameterException) {
+            errorResponse = buildErrorResponse(HttpStatus.BAD_REQUEST, request, "Invalid Parameter", message);
+        } else if (e instanceof MethodArgumentTypeMismatchException) {
             errorResponse = buildErrorResponse(HttpStatus.BAD_REQUEST, request, "Invalid Parameter", message);
         } else {
             errorResponse = buildErrorResponse(HttpStatus.BAD_REQUEST, request, "Invalid Data", message);
@@ -74,12 +77,12 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
 
-//    @ExceptionHandler(Exception.class)
-//    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-//    public ResponseEntity<ErrorResponse> handleGenericException(Exception e, WebRequest request) {
-//        ErrorResponse errorResponse = buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, request, HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), "An unexpected error occurred");
-//        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-//    }
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ResponseEntity<ErrorResponse> handleGenericException(Exception e, WebRequest request) {
+        ErrorResponse errorResponse = buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, request, HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), "An unexpected error occurred");
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
     private ErrorResponse buildErrorResponse(HttpStatus status, WebRequest request, String message) {
         return buildErrorResponse(status, request, status.getReasonPhrase(), message);

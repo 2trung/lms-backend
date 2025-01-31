@@ -3,6 +3,7 @@ package com.example.LMS.mapper;
 import com.example.LMS.dto.request.CreateCourseRequest;
 import com.example.LMS.dto.request.EditCourseRequest;
 import com.example.LMS.dto.response.InstructorCourseResponse;
+import com.example.LMS.dto.response.StudentCourseResponse;
 import com.example.LMS.entity.Course;
 import com.example.LMS.entity.Lecture;
 import org.mapstruct.Mapper;
@@ -10,6 +11,7 @@ import org.mapstruct.Mapping;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
@@ -27,6 +29,15 @@ public interface CourseMapper {
 
     @Mapping(target = "id", source = "id")
     Lecture toLecture(EditCourseRequest.LectureRequest request);
+
+    @Mapping(target = "curriculum", source = "curriculum")
+    @Mapping(target = "students", expression = "java(course.getStudents().size())")
+    List<StudentCourseResponse> toStudentCourseResponse(List<Course> course);
+
+    @Mapping(target = "curriculum", source = "curriculum")
+    @Mapping(target = "students", expression = "java(course.getStudents().size())")
+    @Mapping(target = "isPurchased", ignore = true)
+    StudentCourseResponse toStudentCourseResponse(Course course);
 
     default Page<InstructorCourseResponse> toInstructorCourseResponse(Page<Course> courses) {
         return new PageImpl<>(
