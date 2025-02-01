@@ -8,21 +8,18 @@ import com.example.LMS.dto.request.CreateCourseRequest;
 import com.example.LMS.dto.request.EditCourseRequest;
 import com.example.LMS.dto.response.InstructorCourseResponse;
 import com.example.LMS.dto.response.StudentCourseResponse;
-import com.example.LMS.dto.response.StudentLectureResponse;
-import com.example.LMS.entity.Course;
 import com.example.LMS.service.CourseService;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RequestMapping("/course")
 @RestController
@@ -68,9 +65,31 @@ public class CourseController {
     }
 
     @GetMapping("/student/purchase-info/{id}")
-    public SuccessResponse<StudentCourseResponse> getStudentCoursePurchaseInfo(@PathVariable String id) {
+    public SuccessResponse<Boolean> getStudentCoursePurchaseInfo(@PathVariable String id) {
         return new SuccessResponse<>(200, "Success", courseService.getStudentCoursePurchaseInfo(id));
     }
 
+    @GetMapping("/progress/{id}")
+    public SuccessResponse<Object> getStudentCourseProgress(@PathVariable String id) {
+        return new SuccessResponse<>(200, "Courses retrieved successfully", courseService.getCurrentCourseProgress(id));
+    }
 
+    @PostMapping("/mark-viewed")
+    public SuccessResponse<?> markLectureAsViewed(@RequestBody Map<String, String> data) {
+        String courseId = data.get("courseId");
+        String lectureId = data.get("lectureId");
+        courseService.markLectureAsViewed(courseId, lectureId);
+        return new SuccessResponse<>(200, "Lecture marked as viewed");
+    }
+    @PostMapping("/reset-progress")
+    public SuccessResponse<?> resetCourseProgress(@RequestBody Map<String, String> data) {
+        String courseId = data.get("courseId");
+        courseService.resetCourseProgress(courseId);
+        return new SuccessResponse<>(200, "Course progress reset successfully");
+    }
+
+    @GetMapping("/my")
+    public SuccessResponse<List<StudentCourseResponse>> getMyCourses() {
+        return new SuccessResponse<>(200, "Courses retrieved successfully", courseService.getMyCourses());
+    }
 }

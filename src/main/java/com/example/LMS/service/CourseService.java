@@ -5,12 +5,18 @@ import com.example.LMS.constant.CourseLanguage;
 import com.example.LMS.constant.CourseLevel;
 import com.example.LMS.dto.request.CreateCourseRequest;
 import com.example.LMS.dto.request.EditCourseRequest;
+import com.example.LMS.dto.response.CourseProgressResponse;
 import com.example.LMS.dto.response.InstructorCourseResponse;
 import com.example.LMS.dto.response.StudentCourseResponse;
 import com.example.LMS.entity.Course;
+import com.example.LMS.entity.Lecture;
+import com.example.LMS.entity.LectureProgress;
 import com.example.LMS.entity.User;
+import com.example.LMS.exception.NotFoundException;
 import com.example.LMS.mapper.CourseMapper;
 import com.example.LMS.repository.CourseRepository;
+import com.example.LMS.repository.LectureProgressRepository;
+import com.example.LMS.repository.LectureRepository;
 import com.example.LMS.utils.CustomPageable;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +29,7 @@ import org.springframework.stereotype.Service;
 
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -34,6 +41,8 @@ import java.util.Objects;
 public class CourseService implements ICourseService {
     CourseRepository courseRepository;
     CourseMapper courseMapper;
+    LectureProgressRepository lectureProgressRepository;
+    LectureRepository lectureRepository;
 
     public InstructorCourseResponse createCourse(CreateCourseRequest request) {
         User instructor = getUserDetails();
@@ -48,7 +57,7 @@ public class CourseService implements ICourseService {
         User instructor = getUserDetails();
         Course courseToUpdate = courseRepository.findById(id).orElse(null);
         if (courseToUpdate == null || !Objects.equals(courseToUpdate.getInstructor().getId(), instructor.getId())) {
-            throw new RuntimeException("Course not found");
+            throw new NotFoundException("Course not found");
         }
         courseToUpdate.setTitle(request.getTitle());
         courseToUpdate.setSubtitle(request.getSubtitle());
@@ -81,7 +90,7 @@ public class CourseService implements ICourseService {
         User instructor = getUserDetails();
         Course course = courseRepository.findById(id).orElse(null);
         if (course == null || !Objects.equals(course.getInstructor().getId(), instructor.getId())) {
-            throw new RuntimeException("Course not found");
+            throw new NotFoundException("Course not found");
         }
         return courseMapper.toInstructorCourseResponse(course);
     }
@@ -90,12 +99,7 @@ public class CourseService implements ICourseService {
         Sort sort = getSortOrder(sortBy);
         List<Course> courses = new ArrayList<>();
         try {
-            courses = courseRepository.findByFilters(
-                    (category == null || category.isEmpty()) ? null : category,
-                    (level == null || level.isEmpty()) ? null : level,
-                    (language == null || language.isEmpty()) ? null : language,
-                    sort
-            );
+            courses = courseRepository.findByFilters((category == null || category.isEmpty()) ? null : category, (level == null || level.isEmpty()) ? null : level, (language == null || language.isEmpty()) ? null : language, sort);
         } catch (Exception e) {
             log.error("Error while fetching courses", e);
         }
@@ -112,7 +116,7 @@ public class CourseService implements ICourseService {
     public StudentCourseResponse getStudentCourse(String id) {
         Course course = courseRepository.findById(id).orElse(null);
         if (course == null) {
-            throw new RuntimeException("Course not found");
+            throw new NotFoundException("Course not found");
         }
         var result = courseMapper.toStudentCourseResponse(course);
         result.getCurriculum().forEach(lecture -> {
@@ -121,30 +125,75 @@ public class CourseService implements ICourseService {
         return result;
     }
 
-    public StudentCourseResponse getStudentCoursePurchaseInfo(String id) {
+    public Boolean getStudentCoursePurchaseInfo(String id) {
         Course course = courseRepository.findById(id).orElse(null);
         if (course == null) {
-            throw new RuntimeException("Course not found");
+            return false;
         }
         User student = getUserDetails();
-        if (course.getStudents().contains(student)) {
-            var result = courseMapper.toStudentCourseResponse(course);
-            result.setIsPurchased(true);
-            return result;
+        List<String> studentIds = course.getStudents().stream().map(User::getId).toList();
+        if (studentIds.contains(student.getId())) return true;
+
+        return false;
+    }
+
+    public CourseProgressResponse getCurrentCourseProgress(String courseId) {
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Course not found"));
+        User student = getUserDetails();
+        List<String> studentIds = course.getStudents().stream().map(User::getId).toList();
+        if (!studentIds.contains(student.getId())) {
+            return CourseProgressResponse.builder().courseDetails(courseMapper.toStudentCourseResponse(course)).progress(new ArrayList<>()).isPurchased(false).build();
         }
-        var result = courseMapper.toStudentCourseResponse(course);
-        result.getCurriculum().forEach(lecture -> {
-            if (!lecture.getFreePreview()) lecture.setVideoUrl(null);
-        });
-        result.setIsPurchased(false);
-        return result;
+        List<LectureProgress> lectureProgresses = lectureProgressRepository.findByUserIdAndCourseId(student.getId(), courseId);
+        var courseDetails = courseMapper.toStudentCourseResponse(course);
+        return CourseProgressResponse.builder().courseDetails(courseDetails).progress(lectureProgresses).isPurchased(true).completed(lectureProgresses.stream().filter(LectureProgress::getViewed).count() == course.getCurriculum().size()).build();
+    }
+
+    public void markLectureAsViewed(String courseId, String lectureId) {
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Course not found"));
+        User student = getUserDetails();
+        List<String> studentIds = course.getStudents().stream().map(User::getId).toList();
+        if (!studentIds.contains(student.getId())) {
+            throw new RuntimeException("Course not purchased");
+        }
+        Lecture lecture = lectureRepository.findById(lectureId).orElseThrow(() -> new NotFoundException("Lecture not found"));
+        LectureProgress lectureProgress = lectureProgressRepository.findByUserIdAndLectureId(student.getId(), lecture.getId());
+        if (lectureProgress == null) {
+            lectureProgress = LectureProgress.builder().user(student).lecture(lecture).viewed(true).dateViewed(LocalDateTime.now()).build();
+        } else {
+            lectureProgress.setViewed(true);
+            lectureProgress.setDateViewed(LocalDateTime.now());
+        }
+        try {
+            lectureProgressRepository.save(lectureProgress);
+        } catch (Exception e) {
+            log.error("Error while marking lecture as viewed", e);
+            throw new RuntimeException("Error while marking lecture as viewed");
+        }
+    }
+
+    public void resetCourseProgress(String courseId) {
+        User student = getUserDetails();
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Course not found"));
+        List<String> studentIds = course.getStudents().stream().map(User::getId).toList();
+        if (!studentIds.contains(student.getId())) {
+            throw new NotFoundException("Course not purchased");
+        }
+        List<LectureProgress> lectureProgresses = lectureProgressRepository.findByUserIdAndCourseId(student.getId(), courseId);
+        lectureProgressRepository.deleteAll(lectureProgresses);
+    }
+
+    public List<StudentCourseResponse> getMyCourses() {
+        User student = getUserDetails();
+        List<Course> courses = courseRepository.findByStudentsId(student.getId());
+        return courseMapper.toStudentCourseResponse(courses);
     }
 
     private Sort getSortOrder(String sortBy) {
         if (sortBy != null) {
             String[] parts = sortBy.split(":");
             if (parts.length == 2) {
-                String field = parts[0]; // "title" hoặc "price"
+                String field = parts[0];
                 if (!field.equals("title") && !field.equals("price")) {
                     throw new RuntimeException("Invalid sort field");
                 }

@@ -25,5 +25,5 @@ public interface ICourseService {
 
     StudentCourseResponse getStudentCourse(String id);
 
-    StudentCourseResponse getStudentCoursePurchaseInfo(String id);
+    Boolean getStudentCoursePurchaseInfo(String id);
 }

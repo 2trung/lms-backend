@@ -36,7 +36,6 @@ public interface CourseMapper {
 
     @Mapping(target = "curriculum", source = "curriculum")
     @Mapping(target = "students", expression = "java(course.getStudents().size())")
-    @Mapping(target = "isPurchased", ignore = true)
     StudentCourseResponse toStudentCourseResponse(Course course);
 
     default Page<InstructorCourseResponse> toInstructorCourseResponse(Page<Course> courses) {

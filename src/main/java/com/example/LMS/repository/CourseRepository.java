@@ -29,4 +29,6 @@ public interface CourseRepository extends JpaRepository<Course, String> {
                                @Param("level") List<CourseLevel> level,
                                @Param("language") List<CourseLanguage> language,
                                Sort sort);
+
+    List<Course> findByStudentsId(String studentId);
 }

@@ -8,6 +8,7 @@ import com.example.LMS.dto.response.LoginResponse;
 import com.example.LMS.entity.Role;
 import com.example.LMS.entity.User;
 import com.example.LMS.exception.AuthenticationFailedException;
+import com.example.LMS.exception.NotFoundException;
 import com.example.LMS.exception.UserNotFoundException;
 import com.example.LMS.mapper.UserMapper;
 import com.example.LMS.repository.RoleRepository;
@@ -127,7 +128,7 @@ public class AuthenticationService implements IAuthenticationService {
             Optional<User> userOptional = userRepository.findByEmail(request.getEmail());
             if (userOptional.isPresent())
                 throw new AuthenticationFailedException("Email already registered");
-            Role role = roleRepository.findByName(String.valueOf(PredefinedRole.USER)).orElseThrow(() -> new Exception("Role not found"));
+            Role role = roleRepository.findByName(String.valueOf(PredefinedRole.USER)).orElseThrow(() -> new NotFoundException("Role not found"));
             String hashedPassword = passwordEncoder.encode(request.getPassword());
             User user = User.builder()
                     .email(request.getEmail())

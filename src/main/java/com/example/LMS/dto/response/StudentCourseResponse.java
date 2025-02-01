@@ -33,5 +33,4 @@ public class StudentCourseResponse {
     List<Lecture> curriculum;
     LocalDateTime createdAt;
     int students;
-    Boolean isPurchased;
 }
