@@ -8,6 +8,7 @@ import com.example.LMS.service.OrderService;
 import com.stripe.exception.StripeException;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +20,7 @@ import java.util.Map;
 @RestController
 @FieldDefaults(makeFinal = true, level = lombok.AccessLevel.PRIVATE)
 @AllArgsConstructor
+@PreAuthorize("hasRole('USER')")
 public class OrderController {
     OrderService orderService;
 

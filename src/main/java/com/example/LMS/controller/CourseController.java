@@ -15,6 +15,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,27 +29,32 @@ import java.util.Map;
 public class CourseController {
     CourseService courseService;
 
+    @PreAuthorize("hasRole('INSTRUCTOR')")
     @PostMapping("/add")
     public SuccessResponse<InstructorCourseResponse> addCourse(@Validated @RequestBody CreateCourseRequest course) {
-        return new SuccessResponse<>(200, "Course added successfully", courseService.createCourse(course));
+        return new SuccessResponse<>(200, "Success", courseService.createCourse(course));
     }
 
+    @PreAuthorize("hasRole('INSTRUCTOR')")
     @PutMapping("/update/{id}")
     public SuccessResponse<InstructorCourseResponse> updateCourse(@Validated @RequestBody EditCourseRequest course,@NotBlank @PathVariable String id) {
-        return new SuccessResponse<>(200, "Course updated successfully", courseService.updateCourse(id, course));
+        return new SuccessResponse<>(200, "Success", courseService.updateCourse(id, course));
     }
 
+    @PreAuthorize("hasRole('INSTRUCTOR')")
     @GetMapping("/get")
     public SuccessResponse<Page<InstructorCourseResponse>> getCourse(@PageableDefault(size = 10) Pageable pageable) {
-        return new SuccessResponse<>(200, "Courses retrieved successfully", courseService.getCoursesByInstructor(pageable));
+        return new SuccessResponse<>(200, "Success", courseService.getCoursesByInstructor(pageable));
     }
 
     @GetMapping("/detail/{id}")
+    @PreAuthorize("hasRole('INSTRUCTOR')")
     public SuccessResponse<InstructorCourseResponse> getCourse(@PathVariable String id) {
-        return new SuccessResponse<>(200, "Course retrieved successfully", courseService.getCourse(id));
+        return new SuccessResponse<>(200, "Success", courseService.getCourse(id));
     }
 
     @GetMapping("/student/get")
+    @PreAuthorize("hasRole('USER')")
     public SuccessResponse<List<StudentCourseResponse>> getStudentCourse(
             @PageableDefault(size = 10) Pageable pageable,
             @RequestParam(required = false) List<CourseCategory> category,
@@ -56,25 +62,29 @@ public class CourseController {
             @RequestParam(required = false) List<CourseLanguage> language,
             @RequestParam(required = false, defaultValue = "title:asc") String sortBy
     ) {
-        return new SuccessResponse<>(200, "Courses retrieved successfully", courseService.getAllCourses(category, level, language, sortBy));
+        return new SuccessResponse<>(200, "Success", courseService.getAllCourses(category, level, language, sortBy));
     }
 
     @GetMapping("/student/detail/{id}")
+    @PreAuthorize("hasRole('USER')")
     public SuccessResponse<StudentCourseResponse> getStudentCourse(@PathVariable String id) {
-        return new SuccessResponse<>(200, "Course retrieved successfully", courseService.getStudentCourse(id));
+        return new SuccessResponse<>(200, "Success", courseService.getStudentCourse(id));
     }
 
     @GetMapping("/student/purchase-info/{id}")
+    @PreAuthorize("hasRole('USER')")
     public SuccessResponse<Boolean> getStudentCoursePurchaseInfo(@PathVariable String id) {
         return new SuccessResponse<>(200, "Success", courseService.getStudentCoursePurchaseInfo(id));
     }
 
     @GetMapping("/progress/{id}")
+    @PreAuthorize("hasRole('USER')")
     public SuccessResponse<Object> getStudentCourseProgress(@PathVariable String id) {
-        return new SuccessResponse<>(200, "Courses retrieved successfully", courseService.getCurrentCourseProgress(id));
+        return new SuccessResponse<>(200, "Success", courseService.getCurrentCourseProgress(id));
     }
 
     @PostMapping("/mark-viewed")
+    @PreAuthorize("hasRole('USER')")
     public SuccessResponse<?> markLectureAsViewed(@RequestBody Map<String, String> data) {
         String courseId = data.get("courseId");
         String lectureId = data.get("lectureId");
@@ -82,6 +92,7 @@ public class CourseController {
         return new SuccessResponse<>(200, "Lecture marked as viewed");
     }
     @PostMapping("/reset-progress")
+    @PreAuthorize("hasRole('USER')")
     public SuccessResponse<?> resetCourseProgress(@RequestBody Map<String, String> data) {
         String courseId = data.get("courseId");
         courseService.resetCourseProgress(courseId);
@@ -89,6 +100,7 @@ public class CourseController {
     }
 
     @GetMapping("/my")
+    @PreAuthorize("hasRole('USER')")
     public SuccessResponse<List<StudentCourseResponse>> getMyCourses() {
         return new SuccessResponse<>(200, "Courses retrieved successfully", courseService.getMyCourses());
     }
